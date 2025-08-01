@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SilentRig Dashboard</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+        
+        :root {
+            --monero-orange: #FF6600;
+            --monero-dark: #0F0F0F;
+            --monero-darker: #080808;
+            --monero-gray: #1A1A1A;
+            --monero-light-gray: #2A2A2A;
+            --monero-text: #E0E0E0;
+            --monero-accent: #FF8533;
+            --monero-muted: #666666;
+            --success-green: #00D4AA;
+            --warning-yellow: #FFB020;
+            --error-red: #FF4D4F;
+            --border-color: #333333;
+            --card-bg: rgba(26, 26, 26, 0.8);
+            --sidebar-bg: rgba(15, 15, 15, 0.95);
+            --glow-orange: 0 0 20px rgba(255, 102, 0, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--monero-dark);
+            color: var(--monero-text);
+            line-height: 1.6;
+        }
+
+        .dashboard {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            padding: 2rem 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding: 0 2rem 2rem;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 2rem;
+        }
+
+        .logo {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--monero-orange);
+        }
+
+        .sidebar-nav {
+            padding: 0 2rem;
+        }
+
+        .nav-item {
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            color: var(--monero-text);
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        .nav-link:hover {
+            background: rgba(255, 102, 0, 0.1);
+            color: var(--monero-orange);
+        }
+
+        .nav-link.active {
+            background: var(--monero-orange);
+            color: white;
+        }
+
+        .nav-icon {
+            margin-right: 0.75rem;
+            font-size: 1.1rem;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 2rem;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--monero-text);
+        }
+
+        .status-indicators {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            background: rgba(255, 102, 0, 0.1);
+            border: 1px solid var(--border-color);
+        }
+
+        .websocket-status {
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        .ws-connected {
+            background: rgba(0, 212, 170, 0.1);
+            border: 1px solid var(--success-green);
+            color: var(--success-green);
+        }
+
+        .ws-disconnected {
+            background: rgba(255, 77, 79, 0.1);
+            border: 1px solid var(--error-red);
+            color: var(--error-red);
+        }
+
+        /* Login Form */
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 80vh;
+        }
+
+        .login-form {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 3rem;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .login-form h2 {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: var(--monero-text);
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--monero-text);
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(255, 102, 0, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--monero-text);
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--monero-orange);
+            background: rgba(255, 102, 0, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--monero-orange);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn:hover {
+            background: var(--monero-accent);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .error {
+            color: var(--error-red);
+            text-align: center;
+            margin-top: 1rem;
+            padding: 0.75rem;
+            background: rgba(255, 77, 79, 0.1);
+            border-radius: 6px;
+            border: 1px solid var(--error-red);
+        }
+
+        /* Dashboard Content */
+        .dashboard-content {
+            display: none;
+        }
+
+        .dashboard-content.active {
+            display: block;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .stat-card:hover {
+            border-color: var(--monero-orange);
+            box-shadow: var(--glow-orange);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .stat-title {
+            font-size: 0.9rem;
+            color: var(--monero-muted);
+            font-weight: 500;
+        }
+
+        .stat-icon {
+            font-size: 1.2rem;
+            color: var(--monero-orange);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--monero-text);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-change {
+            font-size: 0.8rem;
+            color: var(--success-green);
+        }
+
+        /* Content Sections */
+        .content-section {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--monero-text);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--monero-orange);
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--monero-orange);
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-secondary:hover {
+            background: var(--monero-orange);
+            color: white;
+        }
+
+        /* Agents Grid */
+        .agents-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+
+        .agent-card {
+            background: rgba(255, 102, 0, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .agent-card:hover {
+            border-color: var(--monero-orange);
+            background: rgba(255, 102, 0, 0.1);
+        }
+
+        .agent-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .agent-name {
+            font-weight: 600;
+            color: var(--monero-text);
+            font-size: 1.1rem;
+        }
+
+        .agent-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .status-active {
+            background: rgba(0, 212, 170, 0.2);
+            color: var(--success-green);
+            border: 1px solid var(--success-green);
+        }
+
+        .status-inactive {
+            background: rgba(255, 77, 79, 0.2);
+            color: var(--error-red);
+            border: 1px solid var(--error-red);
+        }
+
+        .agent-details {
+            font-size: 0.9rem;
+            color: var(--monero-muted);
+        }
+
+        .agent-details div {
+            margin-bottom: 0.25rem;
+        }
+
+        /* Metrics Grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .metric-item {
+            background: rgba(255, 102, 0, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .metric-label {
+            font-size: 0.9rem;
+            color: var(--monero-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-value {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--monero-orange);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--monero-text);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--monero-muted);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .modal-close:hover {
+            color: var(--monero-text);
+        }
+
+        .form-row {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .form-row .btn {
+            flex: 1;
+        }
+
+        .btn-cancel {
+            background: transparent;
+            color: var(--monero-text);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-cancel:hover {
+            background: rgba(255, 77, 79, 0.1);
+            border-color: var(--error-red);
+            color: var(--error-red);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                position: relative;
+                height: auto;
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding: 1rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .agents-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .metrics-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">SilentRig</div>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-item">
+                    <a href="#" class="nav-link active" onclick="showSection('overview')">
+                        <span class="nav-icon">📊</span>
+                        Overview
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link" onclick="showSection('agents')">
+                        <span class="nav-icon">🤖</span>
+                        Agents
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link" onclick="showSection('metrics')">
+                        <span class="nav-icon">📈</span>
+                        Metrics
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link" onclick="showSection('settings')">
+                        <span class="nav-icon">⚙️</span>
+                        Settings
+                    </a>
+                </div>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <div class="header">
+                <h1 class="page-title">Dashboard</h1>
+                <div class="status-indicators">
+                    <div class="status-indicator">
+                        <span>🔗</span>
+                        <span id="websocketStatus" class="websocket-status ws-disconnected">WebSocket: Disconnected</span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="loginForm" class="login-container">
+                <form class="login-form" onsubmit="login(event)">
+                    <h2>Sign In</h2>
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" name="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" name="password" required>
+                    </div>
+                    <button type="submit" class="btn">Sign In</button>
+                    <div id="loginMessage"></div>
+                </form>
+            </div>
+
+            <div id="dashboard" class="dashboard-content">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-title">Total Agents</div>
+                            <div class="stat-icon">🤖</div>
+                        </div>
+                        <div class="stat-value" id="totalAgents">0</div>
+                        <div class="stat-change">+0 this week</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-title">Active Agents</div>
+                            <div class="stat-icon">🟢</div>
+                        </div>
+                        <div class="stat-value" id="activeAgents">0</div>
+                        <div class="stat-change">100% uptime</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-title">Total Hashrate</div>
+                            <div class="stat-icon">⚡</div>
+                        </div>
+                        <div class="stat-value" id="totalHashrate">0.00</div>
+                        <div class="stat-change">H/s</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-title">System Health</div>
+                            <div class="stat-icon">💚</div>
+                        </div>
+                        <div class="stat-value" id="systemHealth">100%</div>
+                        <div class="stat-change">All systems operational</div>
+                    </div>
+                </div>
+
+                <div class="content-section">
+                    <div class="section-header">
+                        <h2 class="section-title">Mining Agents</h2>
+                        <button class="btn-secondary" onclick="showGenerateAgentModal()">Generate Agent</button>
+                    </div>
+                    <div id="agentsList" class="agents-grid">
+                        <!-- Agents will be populated here -->
+                    </div>
+                </div>
+
+                <div class="content-section">
+                    <div class="section-header">
+                        <h2 class="section-title">Real-time Metrics</h2>
+                    </div>
+                    <div id="metricsDisplay" class="metrics-grid">
+                        <!-- Metrics will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Generate Agent Modal -->
+    <div id="generateModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Generate Mining Agent</h3>
+                <button class="modal-close" onclick="hideGenerateAgentModal()">&times;</button>
+            </div>
+            <form id="generateForm">
+                <div class="form-group">
+                    <label>Agent Name</label>
+                    <input type="text" id="agentName" required placeholder="My Mining Rig">
+                </div>
+                <div class="form-group">
+                    <label>Platform</label>
+                    <select id="platform" required style="width: 100%; padding: 0.75rem; background: rgba(255, 102, 0, 0.05); border: 1px solid var(--border-color); border-radius: 6px; color: var(--monero-text);">
+                        <option value="linux">Linux</option>
+                        <option value="windows">Windows</option>
+                        <option value="darwin">macOS</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Architecture</label>
+                    <select id="arch" required style="width: 100%; padding: 0.75rem; background: rgba(255, 102, 0, 0.05); border: 1px solid var(--border-color); border-radius: 6px; color: var(--monero-text);">
+                        <option value="amd64">AMD64</option>
+                        <option value="arm64">ARM64</option>
+                        <option value="386">x86</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <button type="submit" class="btn">Generate</button>
+                    <button type="button" class="btn btn-cancel" onclick="hideGenerateAgentModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080';
+        let token = localStorage.getItem('silentrig_token');
+        let ws = null;
+        let currentMetrics = {};
+
+        // Check if already logged in
+        if (token) {
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('dashboard').classList.add('active');
+            loadDashboard();
+            connectWebSocket();
+        }
+
+        async function login(event) {
+            event.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const messageDiv = document.getElementById('loginMessage');
+
+            try {
+                const response = await fetch(`${API_BASE}/api/v1/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    token = data.token;
+                    localStorage.setItem('silentrig_token', token);
+                    
+                    document.getElementById('loginForm').style.display = 'none';
+                    document.getElementById('dashboard').classList.add('active');
+                    
+                    loadDashboard();
+                    connectWebSocket();
+                } else {
+                    const error = await response.json();
+                    messageDiv.innerHTML = `<div class="error">Login failed: ${error.error}</div>`;
+                }
+            } catch (error) {
+                messageDiv.innerHTML = `<div class="error">Login failed: ${error.message}</div>`;
+            }
+        }
+
+        async function loadDashboard() {
+            try {
+                const response = await fetch(`${API_BASE}/api/v1/dashboard`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    updateDashboard(data);
+                }
+            } catch (error) {
+                console.error('Failed to load dashboard:', error);
+            }
+        }
+
+        function updateDashboard(data) {
+            // Update stats
+            document.getElementById('totalAgents').textContent = data.summary.total_agents;
+            document.getElementById('activeAgents').textContent = data.summary.active_agents;
+            document.getElementById('totalHashrate').textContent = `${data.summary.total_hashrate.toFixed(2)} H/s`;
+            
+            // Update agents list
+            const agentsList = document.getElementById('agentsList');
+            agentsList.innerHTML = '';
+            
+            if (data.agents && data.agents.length > 0) {
+                data.agents.forEach(agent => {
+                    const agentCard = document.createElement('div');
+                    agentCard.className = 'agent-card';
+                    agentCard.innerHTML = `
+                        <div class="agent-header">
+                            <div class="agent-name">${agent.name}</div>
+                            <div class="agent-status ${agent.status === 'active' ? 'status-active' : 'status-inactive'}">
+                                ${agent.status}
+                            </div>
+                        </div>
+                        <div class="agent-details">
+                            <div>ID: ${agent.id}</div>
+                            <div>Machine ID: ${agent.machine_id}</div>
+                            <div>Last Seen: ${new Date(agent.last_seen).toLocaleString()}</div>
+                        </div>
+                    `;
+                    agentsList.appendChild(agentCard);
+                });
+            } else {
+                agentsList.innerHTML = '<div style="text-align: center; color: var(--monero-muted); grid-column: 1 / -1; padding: 2rem;">No agents registered yet</div>';
+            }
+        }
+
+        function connectWebSocket() {
+            ws = new WebSocket(`ws://localhost:8080/ws`);
+            ws.onopen = function() {
+                document.getElementById('websocketStatus').className = 'websocket-status ws-connected';
+                document.getElementById('websocketStatus').textContent = 'WebSocket: Connected';
+            };
+            ws.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                if (data.type === 'metrics') {
+                    updateMetrics(data);
+                }
+            };
+            ws.onclose = function() {
+                document.getElementById('websocketStatus').className = 'websocket-status ws-disconnected';
+                document.getElementById('websocketStatus').textContent = 'WebSocket: Disconnected';
+                setTimeout(connectWebSocket, 5000);
+            };
+            ws.onerror = function(error) {
+                console.error('WebSocket error:', error);
+            };
+        }
+
+        function updateMetrics(data) {
+            currentMetrics[data.agent_id] = data.data;
+            displayMetrics();
+        }
+
+        function displayMetrics() {
+            const metricsDisplay = document.getElementById('metricsDisplay');
+            metricsDisplay.innerHTML = '';
+            
+            if (Object.keys(currentMetrics).length === 0) {
+                metricsDisplay.innerHTML = '<div style="text-align: center; color: var(--monero-muted); grid-column: 1 / -1; padding: 2rem;">No real-time metrics available</div>';
+                return;
+            }
+            
+            Object.keys(currentMetrics).forEach(agentId => {
+                const metrics = currentMetrics[agentId];
+                const metricsGrid = document.createElement('div');
+                metricsGrid.className = 'metrics-grid';
+                metricsGrid.innerHTML = `
+                    <div class="metric-item">
+                        <div class="metric-label">Hashrate</div>
+                        <div class="metric-value">${metrics.hashrate.toFixed(2)} H/s</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-label">Temperature</div>
+                        <div class="metric-value">${metrics.temperature.toFixed(1)}°C</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-label">CPU Usage</div>
+                        <div class="metric-value">${metrics.cpu_usage.toFixed(1)}%</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-label">Memory Usage</div>
+                        <div class="metric-value">${metrics.memory_usage.toFixed(1)}%</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-label">Power Consumption</div>
+                        <div class="metric-value">${metrics.power_consumption.toFixed(1)}W</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-label">Uptime</div>
+                        <div class="metric-value">${(metrics.uptime / 3600).toFixed(1)}h</div>
+                    </div>
+                `;
+                metricsDisplay.appendChild(metricsGrid);
+            });
+        }
+
+        function showGenerateAgentModal() {
+            document.getElementById('generateModal').style.display = 'block';
+        }
+
+        function hideGenerateAgentModal() {
+            document.getElementById('generateModal').style.display = 'none';
+        }
+
+        function showSection(section) {
+            // Update active nav link
+            document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Update page title
+            const titles = {
+                'overview': 'Dashboard',
+                'agents': 'Agent Management',
+                'metrics': 'Analytics',
+                'settings': 'Settings'
+            };
+            document.querySelector('.page-title').textContent = titles[section] || 'Dashboard';
+        }
+
+        document.getElementById('generateForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                name: document.getElementById('agentName').value,
+                platform: document.getElementById('platform').value,
+                arch: document.getElementById('arch').value
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/api/v1/agents/generate`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    alert(`Agent generated successfully!\nAgent ID: ${data.agent.id}\nDownload URL: ${API_BASE}${data.download_url}`);
+                    hideGenerateAgentModal();
+                    loadDashboard();
+                } else {
+                    const error = await response.json();
+                    alert(`Failed to generate agent: ${error.error}`);
+                }
+            } catch (error) {
+                alert(`Error: ${error.message}`);
+            }
+        });
+
+        // Auto-refresh dashboard every 30 seconds
+        setInterval(() => {
+            if (token) {
+                loadDashboard();
+            }
+        }, 30000);
+    </script>
+</body>
+</html> 

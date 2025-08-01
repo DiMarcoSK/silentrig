@@ -1,0 +1,23 @@
+server:
+  address: "0.0.0.0"
+  port: 8080
+  shutdown_timeout: "30s"
+
+database:
+  path: "./data/silentrig.db"
+
+jwt:
+  secret: "your-secret-key-change-this"
+  expiration: "24h"
+
+cors:
+  allowed_origins:
+    - "*"
+  allowed_methods:
+    - "GET"
+    - "POST"
+    - "PUT"
+    - "DELETE"
+    - "OPTIONS"
+  allowed_headers:
+    - "*" 

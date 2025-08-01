@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SilentRig - Mining Management</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+        
+        :root {
+            --monero-orange: #FF6600;
+            --monero-dark: #0F0F0F;
+            --monero-darker: #080808;
+            --monero-gray: #1A1A1A;
+            --monero-light-gray: #2A2A2A;
+            --monero-text: #E0E0E0;
+            --monero-accent: #FF8533;
+            --monero-muted: #666666;
+            --success-green: #00D4AA;
+            --warning-yellow: #FFB020;
+            --error-red: #FF4D4F;
+            --border-color: #333333;
+            --card-bg: rgba(26, 26, 26, 0.8);
+            --glow-orange: 0 0 20px rgba(255, 102, 0, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, var(--monero-darker) 0%, var(--monero-dark) 100%);
+            color: var(--monero-text);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Header */
+        .header {
+            background: rgba(15, 15, 15, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+        }
+
+        .logo {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--monero-orange);
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: var(--monero-text);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--monero-orange);
+        }
+
+        .btn-primary {
+            background: var(--monero-orange);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            display: inline-block;
+        }
+
+        .btn-primary:hover {
+            background: var(--monero-accent);
+            transform: translateY(-1px);
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 4rem 0;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--monero-orange) 0%, var(--monero-accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--monero-muted);
+            margin-bottom: 2rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-bottom: 3rem;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--monero-text);
+            padding: 0.75rem 1.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--monero-orange);
+            color: var(--monero-orange);
+        }
+
+        /* Features Section */
+        .features {
+            padding: 4rem 0;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin-bottom: 3rem;
+            color: var(--monero-text);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+
+        .feature-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            transition: all 0.2s ease;
+        }
+
+        .feature-card:hover {
+            border-color: var(--monero-orange);
+            box-shadow: var(--glow-orange);
+        }
+
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-card h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--monero-text);
+        }
+
+        .feature-card p {
+            color: var(--monero-muted);
+            line-height: 1.6;
+        }
+
+        /* API Section */
+        .api-section {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 4rem;
+        }
+
+        .api-section h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: var(--monero-text);
+        }
+
+        .endpoints-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .endpoint {
+            background: rgba(255, 102, 0, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+        }
+
+        .endpoint-method {
+            color: var(--monero-orange);
+            font-weight: 600;
+        }
+
+        .endpoint-path {
+            color: var(--monero-text);
+        }
+
+        .endpoint-desc {
+            color: var(--monero-muted);
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+        }
+
+        /* Credentials Section */
+        .credentials-section {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .credentials-section h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--monero-text);
+        }
+
+        .credentials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .credential-item {
+            background: rgba(255, 102, 0, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .credential-label {
+            font-size: 0.9rem;
+            color: var(--monero-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .credential-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            color: var(--monero-orange);
+        }
+
+        /* Footer */
+        .footer {
+            background: rgba(15, 15, 15, 0.95);
+            border-top: 1px solid var(--border-color);
+            padding: 2rem 0;
+            text-align: center;
+            color: var(--monero-muted);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 1rem;
+            }
+            
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .hero-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .endpoints-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="/" class="logo">SilentRig</a>
+                <nav class="nav-links">
+                    <a href="/dashboard" class="nav-link">Dashboard</a>
+                    <a href="/docs/API.md" class="nav-link">Documentation</a>
+                    <a href="/health" class="nav-link">Status</a>
+                    <a href="/dashboard" class="btn-primary">Get Started</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="container">
+                <h1>Enterprise Mining Management</h1>
+                <p>Professional-grade platform for managing distributed mining operations with real-time monitoring, secure authentication, and comprehensive analytics.</p>
+                <div class="hero-buttons">
+                    <a href="/dashboard" class="btn-primary">Launch Dashboard</a>
+                    <a href="/docs/API.md" class="btn-secondary">View Documentation</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="features">
+            <div class="container">
+                <h2 class="section-title">Platform Features</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">🔐</div>
+                        <h3>Secure Authentication</h3>
+                        <p>JWT-based authentication with role-based access control for enterprise security.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">📊</div>
+                        <h3>Real-time Monitoring</h3>
+                        <p>Live metrics tracking with WebSocket connections for instant updates and alerts.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🤖</div>
+                        <h3>Agent Management</h3>
+                        <p>Generate and deploy mining agents across multiple platforms and architectures.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">💾</div>
+                        <h3>Data Persistence</h3>
+                        <p>SQLite database with structured schema for reliable data storage and retrieval.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🔌</div>
+                        <h3>RESTful API</h3>
+                        <p>Comprehensive REST API with JSON-RPC support for programmatic integration.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🛡️</div>
+                        <h3>CORS Support</h3>
+                        <p>Cross-origin resource sharing enabled for seamless frontend integration.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="container">
+            <div class="api-section">
+                <h3>API Endpoints</h3>
+                <div class="endpoints-grid">
+                    <div class="endpoint">
+                        <div><span class="endpoint-method">GET</span> <span class="endpoint-path">/health</span></div>
+                        <div class="endpoint-desc">Server health status</div>
+                    </div>
+                    <div class="endpoint">
+                        <div><span class="endpoint-method">POST</span> <span class="endpoint-path">/api/v1/auth/login</span></div>
+                        <div class="endpoint-desc">User authentication</div>
+                    </div>
+                    <div class="endpoint">
+                        <div><span class="endpoint-method">GET</span> <span class="endpoint-path">/api/v1/agents</span></div>
+                        <div class="endpoint-desc">List mining agents</div>
+                    </div>
+                    <div class="endpoint">
+                        <div><span class="endpoint-method">POST</span> <span class="endpoint-path">/api/v1/agents/generate</span></div>
+                        <div class="endpoint-desc">Generate new agent</div>
+                    </div>
+                    <div class="endpoint">
+                        <div><span class="endpoint-method">GET</span> <span class="endpoint-path">/dashboard</span></div>
+                        <div class="endpoint-desc">Web dashboard</div>
+                    </div>
+                    <div class="endpoint">
+                        <div><span class="endpoint-method">GET</span> <span class="endpoint-path">/ws</span></div>
+                        <div class="endpoint-desc">WebSocket connection</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="credentials-section">
+                <h3>Default Access Credentials</h3>
+                <p>Use these credentials to access the platform. Change them in production.</p>
+                <div class="credentials-grid">
+                    <div class="credential-item">
+                        <div class="credential-label">Username</div>
+                        <div class="credential-value">admin</div>
+                    </div>
+                    <div class="credential-item">
+                        <div class="credential-label">Password</div>
+                        <div class="credential-value">admin123</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 SilentRig. Enterprise Mining Management Platform.</p>
+        </div>
+    </footer>
+</body>
+</html> 
